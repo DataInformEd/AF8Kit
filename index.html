@@ -8,6 +8,8 @@
     <style>
         @keyframes pulse-blue { 0%, 100% { color: #94a3b8; } 50% { color: #2563eb; transform: scale(1.1); } }
         .animate-guide { animation: pulse-blue 2s infinite; }
+        @keyframes pulse-red { 0%, 100% { background-color: #dc2626; } 50% { background-color: #ef4444; } }
+        .animate-alert { animation: pulse-red 1.5s infinite; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 font-sans text-slate-900 pb-12">
@@ -15,35 +17,55 @@
     <div id="app" class="max-w-md mx-auto space-y-6">
         
         <div class="flex flex-col items-center pt-6">
-    <div class="bg-white p-2 rounded-full shadow-md overflow-hidden h-20 w-20 flex items-center justify-center border border-slate-200">
-        <img src="Logo.png" alt="Logo" class="max-w-full h-auto">
-    </div>
-    
-    <header id="statusCard" class="w-full mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
-        <div id="overdueAlert" class="hidden absolute top-0 left-0 w-full bg-red-600 text-white text-[10px] font-black uppercase tracking-widest py-1 text-center animate-pulse">
-            ⚠️ Maintenance Overdue ⚠️
-        </div>
-
-        <button id="editToggle" onclick="toggleEdit()" class="absolute top-4 right-4 text-slate-300 hover:text-blue-500 text-[10px] font-black uppercase tracking-widest transition-colors">Edit</button>
-        
-        <div id="headerContent" class="text-center space-y-3 pt-2">
-            <div id="viewMode">
-                <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
-                <p id="boxLoc" class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">📍 Location</p>
+            <div class="bg-white p-2 rounded-full shadow-md overflow-hidden h-20 w-20 flex items-center justify-center border border-slate-200">
+                <img src="Logo.png" alt="Logo" class="max-w-full h-auto">
             </div>
             
-            <div class="space-y-1">
-                <div class="flex justify-between items-end px-1">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Kit Readiness</span>
-                    <span id="healthPercent" class="text-xs font-black text-slate-700">0%</span>
+            <header id="statusCard" class="w-full mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
+                <div id="overdueAlert" class="hidden absolute top-0 left-0 w-full animate-alert text-white text-[9px] font-black uppercase tracking-widest py-1 text-center">
+                    ⚠️ Maintenance Overdue ⚠️
                 </div>
-                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-100">
-                    <div id="healthBar" class="h-full bg-green-500 transition-all duration-1000" style="width: 0%"></div>
+
+                <button id="editToggle" onclick="toggleEdit()" class="absolute top-4 right-4 text-slate-300 hover:text-blue-500 text-[10px] font-black uppercase tracking-widest transition-colors">Edit</button>
+                
+                <div id="headerLoading" class="animate-pulse space-y-2 py-4 text-center">
+                    <div class="h-6 w-3/4 bg-slate-100 mx-auto rounded"></div>
+                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Checking Registry...</p>
                 </div>
-            </div>
+
+                <div id="headerContent" class="hidden text-center space-y-3 pt-2">
+                    <div id="viewMode">
+                        <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">Register Kit</h1>
+                        <p id="boxLoc" class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">📍 Tap Edit to begin</p>
+                    </div>
+                    
+                    <div id="editMode" class="hidden space-y-3 pb-2">
+                        <input type="text" id="editName" placeholder="Nickname (e.g. Hallway Box)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="editLoc" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none">
+                            <option value="" disabled selected>Select Area</option>
+                            <option value="Queenstown Central">Queenstown Central</option>
+                            <option value="Fernhill / Sunshine Bay">Fernhill / Sunshine Bay</option>
+                            <option value="Frankton">Frankton</option>
+                            <option value="Hanley's Farm / Jack's Point">Hanley's Farm / Jack's Point</option>
+                            <option value="Shotover Country / Lake Hayes Estate">Shotover Country / Lake Hayes Estate</option>
+                            <option value="Arrowtown">Arrowtown</option>
+                            <option value="Arthurs Point">Arthurs Point</option>
+                        </select>
+                        <button id="saveBtn" onclick="saveChanges()" class="w-full p-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Save Details</button>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-end px-1">
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Kit Readiness</span>
+                            <span id="healthPercent" class="text-[10px] font-black text-slate-700">0%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                            <div id="healthBar" class="h-full bg-slate-300 transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </header>
         </div>
-    </header>
-</div>
 
         <section class="space-y-3">
             <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Rotation Items</h2>
@@ -58,9 +80,9 @@
         </section>
 
         <div class="py-2">
-            <div class="bg-slate-200/60 rounded-2xl py-3 px-4 flex flex-col items-center justify-center space-y-1">
+            <div class="bg-slate-200/60 rounded-2xl py-3 px-4 flex flex-col items-center justify-center space-y-1 border border-slate-200/50">
                 <p id="lastCheck" class="text-[11px] font-black text-slate-700 uppercase tracking-widest text-center italic">
-                    Syncing...
+                    Connecting...
                 </p>
                 <div id="syncDot" class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
             </div>
@@ -108,62 +130,55 @@
                 if (data.name) {
                     document.getElementById('boxName').innerText = data.name;
                     document.getElementById('boxLoc').innerText = `📍 ${data.location}`;
-                    document.getElementById('lastCheck').innerText = data.lastCheck ? `Last rotation: ${new Date(data.lastCheck).toLocaleDateString()}` : "Never Rotated";
                     document.getElementById('checkFirstAid').checked = data.hasFirstAid;
                     document.getElementById('checkHygiene').checked = data.hasHygiene;
                     document.getElementById('checkTorch').checked = data.hasTorch;
+                    
+                    updateHealthUI(data.lastCheck);
                     document.getElementById('syncDot').classList.replace('bg-slate-300', 'bg-green-500');
                 } else {
-                    // Pre-registered but blank
                     document.getElementById('boxName').innerText = "Register Your Kit";
-                    document.getElementById('boxLoc').innerText = "Tap Edit to begin";
                     document.getElementById('editToggle').classList.add('animate-guide');
                     document.getElementById('lastCheck').innerText = "Awaiting Setup";
                 }
             } catch (e) { console.error(e); }
         }
 
-function updateHealthUI(lastCheckDate) {
-    const healthBar = document.getElementById('healthBar');
-    const healthText = document.getElementById('healthPercent');
-    const alertBanner = document.getElementById('overdueAlert');
-    const statusText = document.getElementById('lastCheck');
+        function updateHealthUI(lastCheckDate) {
+            const healthBar = document.getElementById('healthBar');
+            const healthText = document.getElementById('healthPercent');
+            const alertBanner = document.getElementById('overdueAlert');
+            const statusLabel = document.getElementById('lastCheck');
 
-    if (!lastCheckDate) return;
+            if (!lastCheckDate) {
+                statusLabel.innerText = "Never Rotated";
+                return;
+            }
 
-    const today = new Date();
-    const lastDate = new Date(lastCheckDate);
-    const diffInMs = today - lastDate;
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    
-    // Calculate percentage (180 days = 0%)
-    const maxDays = 180;
-    let percent = Math.max(0, 100 - (diffInDays / maxDays * 100));
-    
-    // Update Bar Width and Text
-    healthBar.style.width = `${percent}%`;
-    healthText.innerText = `${Math.round(percent)}%`;
+            const today = new Date();
+            const lastDate = new Date(lastCheckDate);
+            const diffInMs = today - lastDate;
+            const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+            
+            const maxDays = 180; // 6 month cycle
+            let percent = Math.max(0, 100 - (diffInDays / maxDays * 100));
+            
+            healthBar.style.width = `${percent}%`;
+            healthText.innerText = `${Math.round(percent)}%`;
+            statusLabel.innerText = `Last rotation: ${lastDate.toLocaleDateString()}`;
 
-    // Dynamic Coloring & Alerts
-    if (percent > 60) {
-        healthBar.className = "h-full bg-green-500 transition-all duration-1000";
-        alertBanner.classList.add('hidden');
-    } else if (percent > 20) {
-        healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
-        alertBanner.classList.add('hidden');
-    } else {
-        healthBar.className = "h-full bg-red-600 transition-all duration-1000";
-        alertBanner.classList.remove('hidden');
-        statusText.classList.replace('text-slate-600', 'text-red-600');
-    }
-}
+            if (percent > 60) {
+                healthBar.className = "h-full bg-green-500 transition-all duration-1000";
+                alertBanner.classList.add('hidden');
+            } else if (percent > 20) {
+                healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
+                alertBanner.classList.add('hidden');
+            } else {
+                healthBar.className = "h-full bg-red-600 transition-all duration-1000";
+                alertBanner.classList.remove('hidden');
+            }
+        }
 
-// Call this inside your init() function after data loads:
-// updateHealthUI(data.lastCheck);
-
-
-
-        
         function toggleEdit() {
             const isViewing = !document.getElementById('viewMode').classList.contains('hidden');
             document.getElementById('editToggle').classList.remove('animate-guide');
@@ -184,7 +199,7 @@ function updateHealthUI(lastCheckDate) {
             
             btn.innerText = "SAVING...";
             btn.disabled = true;
-            document.getElementById('lastCheck').innerText = "Updating Cloud Registry...";
+            document.getElementById('lastCheck').innerText = "Updating Cloud...";
 
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
@@ -210,7 +225,7 @@ function updateHealthUI(lastCheckDate) {
                 body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
             });
             label.innerText = "✓ LOGGED";
-            document.getElementById('lastCheck').innerText = "Rotation Saved ✓";
+            updateHealthUI(new Date()); // Optimistic update
             setTimeout(() => { label.innerText = oldText; }, 2000);
         }
 
