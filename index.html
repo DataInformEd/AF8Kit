@@ -144,40 +144,52 @@
             } catch (e) { console.error(e); }
         }
 
-        function updateHealthUI(lastCheckDate) {
-            const healthBar = document.getElementById('healthBar');
-            const healthText = document.getElementById('healthPercent');
-            const alertBanner = document.getElementById('overdueAlert');
-            const statusLabel = document.getElementById('lastCheck');
+       function updateHealthUI(data) {
+    const healthBar = document.getElementById('healthBar');
+    const healthText = document.getElementById('healthPercent');
+    const statusLabel = document.getElementById('lastCheck');
 
-            if (!lastCheckDate) {
-                statusLabel.innerText = "Never Rotated";
-                return;
-            }
+    // 1. Calculate Water Score (33.3%)
+    let waterScore = 0;
+    const waterBtn = document.querySelector('#btnWater .label');
+    const waterSub = document.querySelector('#btnWater .text-xs') || {innerText: ""}; // fallback
+    
+    if (data.lastWater) {
+        const days = Math.floor((new Date() - new Date(data.lastWater)) / (1000*60*60*24));
+        waterScore = Math.max(0, 1 - (days / 180)) * 33.3;
+        waterBtn.innerText = days > 180 ? "Water Needs Checking" : "Water is Fresh";
+    } else {
+        waterBtn.innerText = "2 Weeks of Water?"; // New/Unchecked state
+    }
 
-            const today = new Date();
-            const lastDate = new Date(lastCheckDate);
-            const diffInMs = today - lastDate;
-            const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-            
-            const maxDays = 180; // 6 month cycle
-            let percent = Math.max(0, 100 - (diffInDays / maxDays * 100));
-            
-            healthBar.style.width = `${percent}%`;
-            healthText.innerText = `${Math.round(percent)}%`;
-            statusLabel.innerText = `Last rotation: ${lastDate.toLocaleDateString()}`;
+    // 2. Calculate Food Score (33.3%)
+    let foodScore = 0;
+    const foodBtn = document.querySelector('#btnFood .label');
+    if (data.lastFood) {
+        const days = Math.floor((new Date() - new Date(data.lastFood)) / (1000*60*60*24));
+        foodScore = Math.max(0, 1 - (days / 180)) * 33.3;
+        foodBtn.innerText = days > 180 ? "Food Expiring?" : "Food is In-Date";
+    } else {
+        foodBtn.innerText = "14 Days of Food?";
+    }
 
-            if (percent > 60) {
-                healthBar.className = "h-full bg-green-500 transition-all duration-1000";
-                alertBanner.classList.add('hidden');
-            } else if (percent > 20) {
-                healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
-                alertBanner.classList.add('hidden');
-            } else {
-                healthBar.className = "h-full bg-red-600 transition-all duration-1000";
-                alertBanner.classList.remove('hidden');
-            }
-        }
+    // 3. Calculate Gear Score (33.3%)
+    const gearItems = [data.hasFirstAid, data.hasHygiene, data.hasTorch, data.hasRadio];
+    const checkedCount = gearItems.filter(Boolean).length;
+    let gearScore = (checkedCount / 4) * 33.3;
+
+    // 4. Combine and Update UI
+    const totalScore = Math.round(waterScore + foodScore + gearScore);
+    healthBar.style.width = `${totalScore}%`;
+    healthText.innerText = `${totalScore}%`;
+
+    // Dynamic Color Narrative
+    if (totalScore > 80) healthBar.className = "h-full bg-green-500 transition-all duration-1000";
+    else if (totalScore > 40) healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
+    else healthBar.className = "h-full bg-red-600 transition-all duration-1000";
+
+    statusLabel.innerText = totalScore === 100 ? "Kit Fully Ready ✓" : "Action Required Below";
+}
 
         function toggleEdit() {
             const isViewing = !document.getElementById('viewMode').classList.contains('hidden');
