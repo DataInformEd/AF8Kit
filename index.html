@@ -35,14 +35,15 @@
 
                 <div id="headerContent" class="hidden text-center space-y-3 pt-2">
                     <div id="viewMode">
-                        <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">Register Kit</h1>
-                        <p id="boxLoc" class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">📍 Tap Edit to begin</p>
+                        <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">...</h1>
+                        <p id="boxLoc" class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">📍 ...</p>
                     </div>
                     
-                    <div id="editMode" class="hidden space-y-3 pb-2">
-                        <input type="text" id="editName" placeholder="Nickname (e.g. Hallway Box)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
-                        <select id="editLoc" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none">
-                            <option value="" disabled selected>Select Area</option>
+                    <div id="editMode" class="hidden space-y-3 pb-2 text-left">
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest text-center">Kit Registration</p>
+                        <input type="text" id="editName" placeholder="Nickname (e.g. Hallway Box)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="editLoc" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none appearance-none">
+                            <option value="" disabled selected>Select Neighborhood</option>
                             <option value="Queenstown Central">Queenstown Central</option>
                             <option value="Fernhill / Sunshine Bay">Fernhill / Sunshine Bay</option>
                             <option value="Frankton">Frankton</option>
@@ -51,10 +52,10 @@
                             <option value="Arrowtown">Arrowtown</option>
                             <option value="Arthurs Point">Arthurs Point</option>
                         </select>
-                        <button id="saveBtn" onclick="saveChanges()" class="w-full p-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Save Details</button>
+                        <button id="saveBtn" onclick="saveChanges()" class="w-full p-4 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:bg-blue-700 transition-all">Activate My Kit</button>
                     </div>
 
-                    <div class="space-y-1">
+                    <div id="meterContainer" class="space-y-1">
                         <div class="flex justify-between items-end px-1">
                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Kit Readiness</span>
                             <span id="healthPercent" class="text-[10px] font-black text-slate-700">0%</span>
@@ -67,48 +68,51 @@
             </header>
         </div>
 
-        <section class="space-y-3">
-            <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Rotation Items</h2>
-            <button id="btnWater" onclick="triggerCheckin('Water', 'btnWater')" class="w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
-                <span class="text-3xl">💧</span>
-                <div class="text-left flex-1">
-                    <p class="font-black text-lg label leading-tight">Water is Fresh</p>
-                    <p class="text-[10px] font-bold opacity-70 italic sub">Checking status...</p>
-                </div>
-            </button>
-            <button id="btnFood" onclick="triggerCheckin('Food', 'btnFood')" class="w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
-                <span class="text-3xl">🥫</span>
-                <div class="text-left flex-1">
-                    <p class="font-black text-lg label leading-tight">Food is In-Date</p>
-                    <p class="text-[10px] font-bold opacity-70 italic sub">Checking status...</p>
-                </div>
-            </button>
-        </section>
+        <div id="mainAppContent" class="hidden space-y-6">
+            
+            <section class="space-y-3">
+                <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Rotation Items</h2>
+                <button id="btnWater" onclick="triggerCheckin('Water', 'btnWater')" class="w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
+                    <span class="text-3xl">💧</span>
+                    <div class="text-left flex-1">
+                        <p class="font-black text-lg label leading-tight">Water is Fresh</p>
+                        <p class="text-[10px] font-bold opacity-70 italic sub">Checking status...</p>
+                    </div>
+                </button>
+                <button id="btnFood" onclick="triggerCheckin('Food', 'btnFood')" class="w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
+                    <span class="text-3xl">🥫</span>
+                    <div class="text-left flex-1">
+                        <p class="font-black text-lg label leading-tight">Food is In-Date</p>
+                        <p class="text-[10px] font-bold opacity-70 italic sub">Checking status...</p>
+                    </div>
+                </button>
+            </section>
 
-        <div class="py-2">
-            <div class="bg-slate-200/60 rounded-2xl py-3 px-4 flex flex-col items-center justify-center space-y-1 border border-slate-200/50">
-                <p id="lastCheck" class="text-[11px] font-black text-slate-700 uppercase tracking-widest text-center italic">
-                    Connecting...
-                </p>
-                <div id="syncDot" class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
+            <div class="py-2">
+                <div class="bg-slate-200/60 rounded-2xl py-3 px-4 flex flex-col items-center justify-center space-y-1 border border-slate-200/50">
+                    <p id="lastCheck" class="text-[11px] font-black text-slate-700 uppercase tracking-widest text-center italic">
+                        Connecting...
+                    </p>
+                    <div id="syncDot" class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
+                </div>
             </div>
+
+            <section class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-5">
+                <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Essential Gear</h2>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3"><span class="text-xl">🩹</span><span class="font-bold text-sm text-slate-700">First Aid Kit</span></div>
+                    <input type="checkbox" id="checkFirstAid" onchange="toggleGear('FirstAid', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3"><span class="text-xl">🧼</span><span class="font-bold text-sm text-slate-700">Hygiene Items</span></div>
+                    <input type="checkbox" id="checkHygiene" onchange="toggleGear('Hygiene', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3"><span class="text-xl">🔦</span><span class="font-bold text-sm text-slate-700">Torch & Batteries</span></div>
+                    <input type="checkbox" id="checkTorch" onchange="toggleGear('Torch', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+                </div>
+            </section>
         </div>
-
-        <section class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-5">
-            <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Essential Gear</h2>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3"><span class="text-xl">🩹</span><span class="font-bold text-sm text-slate-700">First Aid Kit</span></div>
-                <input type="checkbox" id="checkFirstAid" onchange="toggleGear('FirstAid', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
-            </div>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3"><span class="text-xl">🧼</span><span class="font-bold text-sm text-slate-700">Hygiene Items</span></div>
-                <input type="checkbox" id="checkHygiene" onchange="toggleGear('Hygiene', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
-            </div>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3"><span class="text-xl">🔦</span><span class="font-bold text-sm text-slate-700">Torch & Batteries</span></div>
-                <input type="checkbox" id="checkTorch" onchange="toggleGear('Torch', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
-            </div>
-        </section>
     </div>
 
     <script>
@@ -118,7 +122,6 @@
         
         let currentBoxData = {}; 
 
-        // Helper to format dates nicely
         function timeAgo(dateString) {
             if (!dateString) return "Never Checked";
             const days = Math.floor((new Date() - new Date(dateString)) / (1000*60*60*24));
@@ -148,23 +151,22 @@
                 document.getElementById('headerContent').classList.remove('hidden');
 
                 if (data.name) {
+                    // ALREADY REGISTERED: Show everything
                     document.getElementById('boxName').innerText = data.name;
                     document.getElementById('boxLoc').innerText = `📍 ${data.location}`;
                     document.getElementById('checkFirstAid').checked = data.hasFirstAid;
                     document.getElementById('checkHygiene').checked = data.hasHygiene;
                     document.getElementById('checkTorch').checked = data.hasTorch;
-
+                    
+                    document.getElementById('mainAppContent').classList.remove('hidden');
                     updateHealthUI(currentBoxData); 
                     document.getElementById('syncDot').classList.replace('bg-slate-300', 'bg-green-500');
                 } else {
-                    document.getElementById('boxName').innerText = "Register Your Kit";
-                    document.getElementById('editToggle').classList.add('animate-guide');
-                    document.getElementById('lastCheck').innerText = "Awaiting Setup";
-                    
-                    document.querySelector('#btnWater .label').innerText = "Load Water?";
-                    document.querySelector('#btnWater .sub').innerText = "Tap when stocked";
-                    document.querySelector('#btnFood .label').innerText = "Load Food?";
-                    document.querySelector('#btnFood .sub').innerText = "Tap when stocked";
+                    // NEW BOX: Force Registration
+                    document.getElementById('editToggle').classList.add('hidden'); // Hide the X/Edit button
+                    document.getElementById('viewMode').classList.add('hidden');
+                    document.getElementById('meterContainer').classList.add('hidden');
+                    document.getElementById('editMode').classList.remove('hidden');
                 }
             } catch (e) { console.error(e); }
         }
@@ -175,7 +177,6 @@
             const alertBanner = document.getElementById('overdueAlert');
             const statusLabel = document.getElementById('lastCheck');
 
-            // 1. Calculate Water Score (Warning Zone Logic)
             let waterScore = 0;
             const waterBtn = document.querySelector('#btnWater .label');
             const waterSub = document.querySelector('#btnWater .sub');
@@ -183,16 +184,13 @@
             if (data.lastWater) {
                 const days = Math.floor((new Date() - new Date(data.lastWater)) / (1000*60*60*24));
                 waterScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
-                
                 waterBtn.innerText = days > 180 ? "Replace Water" : "Water is Fresh";
                 waterSub.innerText = timeAgo(data.lastWater);
-                
                 document.getElementById('btnWater').className = days > 180 
                     ? "w-full flex items-center gap-4 p-5 bg-red-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all animate-pulse"
                     : "w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all";
             }
 
-            // 2. Calculate Food Score (Warning Zone Logic)
             let foodScore = 0;
             const foodBtn = document.querySelector('#btnFood .label');
             const foodSub = document.querySelector('#btnFood .sub');
@@ -200,21 +198,17 @@
             if (data.lastFood) {
                 const days = Math.floor((new Date() - new Date(data.lastFood)) / (1000*60*60*24));
                 foodScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
-
                 foodBtn.innerText = days > 180 ? "Check Expiries" : "Food is In-Date";
                 foodSub.innerText = timeAgo(data.lastFood);
-                
                 document.getElementById('btnFood').className = days > 180 
                     ? "w-full flex items-center gap-4 p-5 bg-red-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all animate-pulse"
                     : "w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all";
             }
 
-            // 3. Calculate Gear Score 
             const gearItems = [data.hasFirstAid, data.hasHygiene, data.hasTorch];
             const checkedCount = gearItems.filter(Boolean).length;
             let gearScore = (checkedCount / 3) * 33.4;
 
-            // 4. Combine and Update UI
             const totalScore = Math.round(waterScore + foodScore + gearScore);
             healthBar.style.width = `${totalScore}%`;
             healthText.innerText = `${totalScore}%`;
@@ -236,9 +230,8 @@
 
         function toggleEdit() {
             const isViewing = !document.getElementById('viewMode').classList.contains('hidden');
-            document.getElementById('editToggle').classList.remove('animate-guide');
             if (isViewing) {
-                document.getElementById('editName').value = document.getElementById('boxName').innerText === "Register Your Kit" ? "" : document.getElementById('boxName').innerText;
+                document.getElementById('editName').value = document.getElementById('boxName').innerText;
                 document.getElementById('viewMode').classList.add('hidden');
                 document.getElementById('editMode').classList.remove('hidden');
             } else {
@@ -249,40 +242,53 @@
 
         async function saveChanges() {
             const btn = document.getElementById('saveBtn');
-            const newName = document.getElementById('editName').value || "Unnamed Kit";
-            const newLoc = document.getElementById('editLoc').value || "Unknown Location";
+            const newName = document.getElementById('editName').value;
+            const newLoc = document.getElementById('editLoc').value;
 
-            btn.innerText = "SAVING...";
+            if (!newName || !newLoc) {
+                alert("Please provide a name and location to activate your kit.");
+                return;
+            }
+
+            btn.innerText = "ACTIVATING...";
             btn.disabled = true;
-            document.getElementById('lastCheck').innerText = "Updating Cloud...";
 
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'update', boxId: boxId, name: newName, location: newLoc })
             });
 
+            // Update local data and UI
+            currentBoxData.name = newName;
+            currentBoxData.location = newLoc;
+            
             document.getElementById('boxName').innerText = newName;
             document.getElementById('boxLoc').innerText = `📍 ${newLoc}`;
+            
+            // Unlock the app
+            document.getElementById('editToggle').classList.remove('hidden');
+            document.getElementById('viewMode').classList.remove('hidden');
+            document.getElementById('meterContainer').classList.remove('hidden');
+            document.getElementById('mainAppContent').classList.remove('hidden');
+            document.getElementById('editMode').classList.add('hidden');
+            
             btn.innerText = "Save Details";
             btn.disabled = false;
-            toggleEdit();
-            document.getElementById('lastCheck').innerText = "Changes Saved ✓";
+            updateHealthUI(currentBoxData);
             document.getElementById('syncDot').classList.replace('bg-slate-300', 'bg-green-500');
+            document.getElementById('lastCheck').innerText = "Kit Activated! ✓";
         }
 
         async function triggerCheckin(category, btnId) {
             const btn = document.getElementById(btnId);
             const label = btn.querySelector('.label');
             const sub = btn.querySelector('.sub');
-            
             label.innerText = "SYNCING...";
             sub.innerText = "Please wait...";
-
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
             });
-            
             if (category === 'Water') currentBoxData.lastWater = new Date().toISOString();
             if (category === 'Food') currentBoxData.lastFood = new Date().toISOString();
             updateHealthUI(currentBoxData); 
@@ -295,10 +301,9 @@
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'updateGear', boxId: boxId, item: item, state: state })
             });
-            document.getElementById('lastCheck').innerText = "Gear State Saved ✓";
-            
             currentBoxData[`has${item}`] = state;
             updateHealthUI(currentBoxData);
+            document.getElementById('lastCheck').innerText = "Gear State Saved ✓";
         }
 
         window.onload = init;
