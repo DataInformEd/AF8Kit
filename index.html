@@ -16,19 +16,38 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCa1W_pzFtu2PC4_Im23F7K1otvdrhwugfTcaqZjs-n8vNtjZZv6Xcm4ulz6lhlJA/exec";
 
-        async function sendData(category) {
-            const msg = document.getElementById('msg');
-            
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ boxId: "101", category: category })
-            });
+async function sendData(category) {
+    const msg = document.getElementById('msg');
+    
+    // We must use 'text/plain' and 'no-cors' to bypass the CORS wall
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: JSON.stringify({ 
+                boxId: "101", 
+                category: category 
+            })
+        });
 
-            if (response.ok) {
-                msg.classList.remove('hidden');
-                setTimeout(() => msg.classList.add('hidden'), 3000);
-            }
-        }
+        // NOTE: Because of 'no-cors', the browser won't let us read the response.
+        // We just have to assume it worked and check the Google Sheet!
+        msg.innerText = "✓ Check Sent! (Refresh your Sheet)";
+        msg.classList.remove('hidden');
+        msg.style.color = "green";
+        setTimeout(() => msg.classList.add('hidden'), 5000);
+        
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        msg.innerText = "Error - Check Console";
+        msg.classList.remove('hidden');
+        msg.style.color = "red";
+    }
+}
+        
     </script>
 </body>
 </html>
