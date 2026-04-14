@@ -1,60 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AF8 Resilience Kit</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom animations for button clicks */
+        .btn-active:active { transform: scale(0.95); }
+        .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
 </head>
-<body class="bg-slate-50 p-6">
-    <div class="max-w-md mx-auto text-center">
-        <h1 class="text-3xl font-bold mb-4">📦 Resilience Check</h1>
-        
-        <button onclick="sendData('Water')" class="w-full mb-4 p-4 bg-blue-500 text-white rounded-xl font-bold">💧 Water is Fresh</button>
-        <button onclick="sendData('Food')" class="w-full p-4 bg-orange-500 text-white rounded-xl font-bold">🥫 Food is In-Date</button>
+<body class="bg-slate-50 min-h-screen p-4 font-sans text-slate-900">
 
-        <p id="msg" class="mt-4 text-green-600 font-medium hidden">Saved to cloud!</p>
+    <div id="app" class="max-w-md mx-auto space-y-6 pt-4">
+        
+        <header id="statusCard" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div id="headerLoading" class="space-y-3">
+                <div class="h-8 w-3/4 loading-shimmer rounded-lg"></div>
+                <div class="h-4 w-1/2 loading-shimmer rounded-lg"></div>
+            </div>
+            
+            <div id="headerContent" class="hidden">
+                <h1 id="boxName" class="text-3xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
+                <p id="boxLoc" class="text-slate-500 font-bold flex items-center gap-1">
+                    📍 <span id="locText">Loading...</span>
+                </p>
+                <div id="lastCheck" class="mt-4 inline-block px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                    Syncing...
+                </div>
+            </div>
+        </header>
+
+        <main id="mainActions" class="space-y-4">
+            <button onclick="triggerAction('Water')" class="w-full flex items-center gap-4 p-6 bg-blue-600 text-white rounded-3xl shadow-lg btn-active transition-all group">
+                <span class="text-4xl group-active:animate-bounce">💧</span>
+                <div class="text-left">
+                    <p class="font-black text-xl leading-tight">Water is Fresh</p>
+                    <p class="text-xs opacity-70 italic font-medium">Standard 6-month rotation</p>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('Food')" class="w-full flex items-center gap-4 p-6 bg-orange-500 text-white rounded-3xl shadow-lg btn-active transition-all group">
+                <span class="text-4xl group-active:animate-bounce">🥫</span>
+                <div class="text-left">
+                    <p class="font-black text-xl leading-tight">Food is In-Date</p>
+                    <p class="text-xs opacity-70 italic font-medium">Check expiry stickers</p>
+                </div>
+            </button>
+            <p id="feedbackMsg" class="text-center text-sm font-bold text-green-600 hidden">✓ Update Sent to Cloud</p>
+        </main>
+
+        <section id="regForm" class="hidden bg-white p-6 rounded-3xl shadow-xl border-2 border-blue-500 space-y-4">
+            <h2 class="text-xl font-black italic uppercase">Register New Box</h2>
+            <p class="text-sm text-slate-500 font-medium">This QR code isn't assigned yet. Let's set it up!</p>
+            <input type="text" id="newName" placeholder="Name (e.g. Smith Family)" class="w-full p-4 bg-slate-100 rounded-xl font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="newLoc" placeholder="Location (e.g. Hallway Cupboard)" class="w-full p-4 bg-slate-100 rounded-xl font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+            <button onclick="registerBox()" class="w-full p-4 bg-black text-white rounded-xl font-black uppercase tracking-widest">Activate Kit</button>
+        </section>
+
+        <footer class="pt-8">
+            <details class="group bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all">
+                <summary class="p-4 font-bold text-slate-400 text-sm cursor-pointer hover:bg-slate-50 flex justify-between items-center list-none">
+                    MANAGE KIT SETTINGS
+                    <span class="group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="p-2 space-y-1 border-t border-slate-100 bg-slate-50">
+                    <button class="w-full text-left p-3 hover:bg-white rounded-lg font-bold text-slate-700">Change Name/Location</button>
+                    <button class="w-full text-left p-3 hover:bg-red-50 rounded-lg font-bold text-red-600">Delete Box Connection</button>
+                </div>
+            </details>
+        </footer>
+
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCa1W_pzFtu2PC4_Im23F7K1otvdrhwugfTcaqZjs-n8vNtjZZv6Xcm4ulz6lhlJA/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const boxId = urlParams.get('id') || "UNSET";
 
-// 1. Get the ID from the URL (e.g., ?id=qtn-res-001-xyz)
-const urlParams = new URLSearchParams(window.location.search);
-const boxId = urlParams.get('id') || "UNSET"; // Default to UNSET if no ID
+        // 1. INITIALIZE: Fetch data from Google
+        async function init() {
+            if (boxId === "UNSET") {
+                document.getElementById('headerLoading').innerHTML = "<h1 class='text-red-500 font-bold'>⚠️ NO ID FOUND. SCAN QR AGAIN.</h1>";
+                return;
+            }
 
-// 2. Display the ID on the screen so we know it's working
-document.addEventListener("DOMContentLoaded", () => {
-    if(boxId !== "UNSET") {
-        document.getElementById('box-display').innerText = "Box ID: " + boxId;
-    }
-});
+            try {
+                // Fetch current status from the Google Script doGet()
+                const response = await fetch(`${SCRIPT_URL}?id=${boxId}`);
+                const data = await response.json();
 
-async function sendData(category) {
-    if (boxId === "UNSET") {
-        alert("No Box ID found! Scan a QR code to begin.");
-        return;
-    }
+                document.getElementById('headerLoading').classList.add('hidden');
+                
+                if (!data.registered) {
+                    document.getElementById('mainActions').classList.add('hidden');
+                    document.getElementById('regForm').classList.remove('hidden');
+                    document.getElementById('boxName').innerText = "Unregistered Box";
+                } else {
+                    document.getElementById('headerContent').classList.remove('hidden');
+                    document.getElementById('boxName').innerText = data.name;
+                    document.getElementById('locText').innerText = data.location;
+                    document.getElementById('lastCheck').innerText = data.lastCheck ? `Last Check: ${new Date(data.lastCheck).toLocaleDateString()}` : "Never Checked";
+                }
+            } catch (e) {
+                console.error("Init Error", e);
+            }
+        }
 
-    const msg = document.getElementById('msg');
-    
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ 
-                boxId: boxId, // Now uses the ID from the URL!
-                category: category 
-            })
-        });
+        // 2. TRIGGER CHECK-IN
+        async function triggerAction(category) {
+            const feedback = document.getElementById('feedbackMsg');
+            
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
+                });
 
-        msg.innerText = "✓ Sending to Cloud...";
-        msg.classList.remove('hidden');
-        setTimeout(() => msg.classList.add('hidden'), 3000);
-        
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
-        
+                feedback.classList.remove('hidden');
+                setTimeout(() => feedback.classList.add('hidden'), 4000);
+                
+                // Optimistic UI update
+                document.getElementById('lastCheck').innerText = "Just now ✓";
+            } catch (error) {
+                alert("Failed to sync. Check internet connection.");
+            }
+        }
+
+        // 3. REGISTER NEW BOX
+        async function registerBox() {
+            const name = document.getElementById('newName').value;
+            const loc = document.getElementById('newLoc').value;
+            
+            if(!name || !loc) return alert("Please fill in both fields");
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'register', boxId: boxId, name: name, location: loc })
+                });
+
+                alert("Box Registered! Refreshing...");
+                location.reload();
+            } catch (e) {
+                alert("Registration failed.");
+            }
+        }
+
+        // Run on load
+        window.onload = init;
     </script>
 </body>
 </html>
