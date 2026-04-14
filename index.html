@@ -71,11 +71,17 @@
             <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Rotation Items</h2>
             <button id="btnWater" onclick="triggerCheckin('Water', 'btnWater')" class="w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
                 <span class="text-3xl">💧</span>
-                <span class="font-black text-lg label">Water is Fresh</span>
+                <div class="text-left flex-1">
+                    <p class="font-black text-lg label leading-tight">Water is Fresh</p>
+                    <p class="text-[10px] font-bold opacity-70 italic sub">Checking status...</p>
+                </div>
             </button>
             <button id="btnFood" onclick="triggerCheckin('Food', 'btnFood')" class="w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
                 <span class="text-3xl">🥫</span>
-                <span class="font-black text-lg label">Food is In-Date</span>
+                <div class="text-left flex-1">
+                    <p class="font-black text-lg label leading-tight">Food is In-Date</p>
+                    <p class="text-[10px] font-bold opacity-70 italic sub">Checking status...</p>
+                </div>
             </button>
         </section>
 
@@ -105,13 +111,23 @@
         </section>
     </div>
 
-  <script>
+    <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCa1W_pzFtu2PC4_Im23F7K1otvdrhwugfTcaqZjs-n8vNtjZZv6Xcm4ulz6lhlJA/exec"; 
         const urlParams = new URLSearchParams(window.location.search);
         const boxId = urlParams.get('id') || "UNSET";
         
-        // This stores the data locally so the progress bar updates instantly
         let currentBoxData = {}; 
+
+        // Helper to format dates nicely
+        function timeAgo(dateString) {
+            if (!dateString) return "Never Checked";
+            const days = Math.floor((new Date() - new Date(dateString)) / (1000*60*60*24));
+            if (days === 0) return "Checked Today";
+            if (days === 1) return "Checked Yesterday";
+            if (days < 30) return `Checked ${days} days ago`;
+            if (days < 365) return `Checked ${Math.floor(days/30)} months ago`;
+            return `Checked ${Math.floor(days/365)} years ago`;
+        }
 
         async function init() {
             if (boxId === "UNSET") {
@@ -121,7 +137,7 @@
             try {
                 const res = await fetch(`${SCRIPT_URL}?id=${boxId}`);
                 const data = await res.json();
-                currentBoxData = data; // Save it to our local tracker
+                currentBoxData = data; 
 
                 if (!data.existsInRegistry) {
                     document.getElementById('headerLoading').innerHTML = "<p class='text-red-500 font-black text-[10px] uppercase py-4'>❌ ID Not Authorized</p>";
@@ -138,13 +154,17 @@
                     document.getElementById('checkHygiene').checked = data.hasHygiene;
                     document.getElementById('checkTorch').checked = data.hasTorch;
 
-                    // FIX 1: Pass the whole object, not just the date
                     updateHealthUI(currentBoxData); 
                     document.getElementById('syncDot').classList.replace('bg-slate-300', 'bg-green-500');
                 } else {
                     document.getElementById('boxName').innerText = "Register Your Kit";
                     document.getElementById('editToggle').classList.add('animate-guide');
                     document.getElementById('lastCheck').innerText = "Awaiting Setup";
+                    
+                    document.querySelector('#btnWater .label').innerText = "Load Water?";
+                    document.querySelector('#btnWater .sub').innerText = "Tap when stocked";
+                    document.querySelector('#btnFood .label').innerText = "Load Food?";
+                    document.querySelector('#btnFood .sub').innerText = "Tap when stocked";
                 }
             } catch (e) { console.error(e); }
         }
@@ -152,22 +172,18 @@
         function updateHealthUI(data) {
             const healthBar = document.getElementById('healthBar');
             const healthText = document.getElementById('healthPercent');
+            const alertBanner = document.getElementById('overdueAlert');
             const statusLabel = document.getElementById('lastCheck');
 
-            // 1. Calculate Water Score
+            // 1. Calculate Water Score (Warning Zone Logic)
             let waterScore = 0;
             const waterBtn = document.querySelector('#btnWater .label');
             const waterSub = document.querySelector('#btnWater .sub');
 
             if (data.lastWater) {
                 const days = Math.floor((new Date() - new Date(data.lastWater)) / (1000*60*60*24));
+                waterScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
                 
-                // YOUR LOGIC: The Binary Switch (100% or 0%)
-               // waterScore = days <= 180 ? 33.3 : 0; 
-                
-                // MY PUSHBACK: The "Warning Zone" (Uncomment this to use it instead)
-                 waterScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
-
                 waterBtn.innerText = days > 180 ? "Replace Water" : "Water is Fresh";
                 waterSub.innerText = timeAgo(data.lastWater);
                 
@@ -176,18 +192,13 @@
                     : "w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all";
             }
 
-            // 2. Calculate Food Score
+            // 2. Calculate Food Score (Warning Zone Logic)
             let foodScore = 0;
             const foodBtn = document.querySelector('#btnFood .label');
             const foodSub = document.querySelector('#btnFood .sub');
             
             if (data.lastFood) {
                 const days = Math.floor((new Date() - new Date(data.lastFood)) / (1000*60*60*24));
-                
-                // YOUR LOGIC: The Binary Switch
-                //foodScore = days <= 180 ? 33.3 : 0;
-
-                // MY PUSHBACK: The "Warning Zone"
                 foodScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
 
                 foodBtn.innerText = days > 180 ? "Check Expiries" : "Food is In-Date";
@@ -198,7 +209,7 @@
                     : "w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all";
             }
 
-            // 3. Calculate Gear Score (Still stays at 33.4% if all 3 are checked)
+            // 3. Calculate Gear Score 
             const gearItems = [data.hasFirstAid, data.hasHygiene, data.hasTorch];
             const checkedCount = gearItems.filter(Boolean).length;
             let gearScore = (checkedCount / 3) * 33.4;
@@ -208,15 +219,17 @@
             healthBar.style.width = `${totalScore}%`;
             healthText.innerText = `${totalScore}%`;
 
-            // Adjust the overall color narrative based on the new math
             if (totalScore >= 99) {
                 healthBar.className = "h-full bg-green-500 transition-all duration-1000";
+                alertBanner.classList.add('hidden');
                 statusLabel.innerText = "Kit Fully Ready ✓";
             } else if (totalScore > 60) {
                 healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
+                alertBanner.classList.add('hidden');
                 statusLabel.innerText = "Minor Updates Required";
             } else {
                 healthBar.className = "h-full bg-red-600 transition-all duration-1000";
+                alertBanner.classList.remove('hidden');
                 statusLabel.innerText = "Action Required Below";
             }
         }
@@ -260,18 +273,20 @@
         async function triggerCheckin(category, btnId) {
             const btn = document.getElementById(btnId);
             const label = btn.querySelector('.label');
+            const sub = btn.querySelector('.sub');
             
             label.innerText = "SYNCING...";
+            sub.innerText = "Please wait...";
+
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
             });
-            label.innerText = "✓ LOGGED";
             
-            // FIX 3: Instantly update our local tracker and recalculate the bar!
             if (category === 'Water') currentBoxData.lastWater = new Date().toISOString();
             if (category === 'Food') currentBoxData.lastFood = new Date().toISOString();
             updateHealthUI(currentBoxData); 
+            document.getElementById('lastCheck').innerText = "Rotation Logged ✓";
         }
 
         async function toggleGear(item, state) {
@@ -282,7 +297,6 @@
             });
             document.getElementById('lastCheck').innerText = "Gear State Saved ✓";
             
-            // Instantly update the bar when a checkbox is clicked
             currentBoxData[`has${item}`] = state;
             updateHealthUI(currentBoxData);
         }
