@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AF8 Resilience Kit</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-blue { 0%, 100% { color: #94a3b8; } 50% { color: #2563eb; transform: scale(1.1); } }
+        .animate-guide { animation: pulse-blue 2s infinite; }
+    </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 font-sans text-slate-900 pb-12">
 
@@ -15,21 +19,22 @@
                 <img src="Logo.png" alt="Logo" class="max-w-full h-auto">
             </div>
             <header id="statusCard" class="w-full mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative">
-                <button onclick="toggleEdit()" class="absolute top-4 right-4 text-slate-300 hover:text-blue-500 text-[10px] font-black uppercase tracking-widest transition-colors">Edit</button>
+                <button id="editToggle" onclick="toggleEdit()" class="absolute top-4 right-4 text-slate-300 hover:text-blue-500 text-[10px] font-black uppercase tracking-widest transition-colors">Edit</button>
                 
                 <div id="headerLoading" class="animate-pulse space-y-2 py-4 text-center">
                     <div class="h-6 w-3/4 bg-slate-100 mx-auto rounded"></div>
-                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Loading Box Details...</p>
+                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Checking Registry...</p>
                 </div>
 
                 <div id="headerContent" class="hidden text-center space-y-1">
                     <div id="viewMode">
-                        <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
-                        <p id="boxLoc" class="text-slate-400 font-bold text-xs uppercase tracking-widest">📍 Location</p>
+                        <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">...</h1>
+                        <p id="boxLoc" class="text-slate-400 font-bold text-xs uppercase tracking-widest">📍 ...</p>
                     </div>
                     <div id="editMode" class="hidden space-y-3 pb-2">
-                        <input type="text" id="editName" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="editName" placeholder="Nickname (e.g. Hallway Box)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
                         <select id="editLoc" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none">
+                            <option value="" disabled selected>Select Area</option>
                             <option value="Queenstown Central">Queenstown Central</option>
                             <option value="Fernhill / Sunshine Bay">Fernhill / Sunshine Bay</option>
                             <option value="Frankton">Frankton</option>
@@ -38,7 +43,7 @@
                             <option value="Arrowtown">Arrowtown</option>
                             <option value="Arthurs Point">Arthurs Point</option>
                         </select>
-                        <button id="saveBtn" onclick="saveChanges()" class="w-full p-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Save Changes</button>
+                        <button id="saveBtn" onclick="saveChanges()" class="w-full p-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Save Details</button>
                     </div>
                 </div>
             </header>
@@ -57,9 +62,12 @@
         </section>
 
         <div class="py-2">
-            <p id="lastCheck" class="text-center text-[11px] font-black text-slate-600 uppercase tracking-widest italic bg-slate-100/50 py-2 rounded-xl">
-                Establishing Cloud Sync...
-            </p>
+            <div class="bg-slate-200/60 rounded-2xl py-3 px-4 flex flex-col items-center justify-center space-y-1">
+                <p id="lastCheck" class="text-[11px] font-black text-slate-700 uppercase tracking-widest text-center italic">
+                    Syncing...
+                </p>
+                <div id="syncDot" class="h-1.5 w-1.5 rounded-full bg-slate-300"></div>
+            </div>
         </div>
 
         <section class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-5">
@@ -77,7 +85,6 @@
                 <input type="checkbox" id="checkTorch" onchange="toggleGear('Torch', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
             </div>
         </section>
-
     </div>
 
     <script>
@@ -86,28 +93,45 @@
         const boxId = urlParams.get('id') || "UNSET";
 
         async function init() {
-            if (boxId === "UNSET") return;
+            if (boxId === "UNSET") {
+                document.getElementById('headerLoading').innerHTML = "<p class='text-red-500 font-black text-[10px] uppercase py-4'>⚠️ No Box ID Found</p>";
+                return;
+            }
             try {
                 const res = await fetch(`${SCRIPT_URL}?id=${boxId}`);
                 const data = await res.json();
+                
+                if (!data.existsInRegistry) {
+                    document.getElementById('headerLoading').innerHTML = "<p class='text-red-500 font-black text-[10px] uppercase py-4'>❌ ID Not Authorized</p>";
+                    return;
+                }
+
                 document.getElementById('headerLoading').classList.add('hidden');
                 document.getElementById('headerContent').classList.remove('hidden');
-                if (data.registered) {
+                
+                if (data.name) {
                     document.getElementById('boxName').innerText = data.name;
                     document.getElementById('boxLoc').innerText = `📍 ${data.location}`;
                     document.getElementById('lastCheck').innerText = data.lastCheck ? `Last rotation: ${new Date(data.lastCheck).toLocaleDateString()}` : "Never Rotated";
                     document.getElementById('checkFirstAid').checked = data.hasFirstAid;
                     document.getElementById('checkHygiene').checked = data.hasHygiene;
                     document.getElementById('checkTorch').checked = data.hasTorch;
+                    document.getElementById('syncDot').classList.replace('bg-slate-300', 'bg-green-500');
+                } else {
+                    // Pre-registered but blank
+                    document.getElementById('boxName').innerText = "Register Your Kit";
+                    document.getElementById('boxLoc').innerText = "Tap Edit to begin";
+                    document.getElementById('editToggle').classList.add('animate-guide');
+                    document.getElementById('lastCheck').innerText = "Awaiting Setup";
                 }
             } catch (e) { console.error(e); }
         }
 
         function toggleEdit() {
             const isViewing = !document.getElementById('viewMode').classList.contains('hidden');
+            document.getElementById('editToggle').classList.remove('animate-guide');
             if (isViewing) {
-                document.getElementById('editName').value = document.getElementById('boxName').innerText;
-                document.getElementById('editLoc').value = document.getElementById('boxLoc').innerText.replace('📍 ', '');
+                document.getElementById('editName').value = document.getElementById('boxName').innerText === "Register Your Kit" ? "" : document.getElementById('boxName').innerText;
                 document.getElementById('viewMode').classList.add('hidden');
                 document.getElementById('editMode').classList.remove('hidden');
             } else {
@@ -117,15 +141,13 @@
         }
 
         async function saveChanges() {
-            const saveBtn = document.getElementById('saveBtn');
-            const originalText = saveBtn.innerText;
-            const newName = document.getElementById('editName').value;
-            const newLoc = document.getElementById('editLoc').value;
+            const btn = document.getElementById('saveBtn');
+            const newName = document.getElementById('editName').value || "Unnamed Kit";
+            const newLoc = document.getElementById('editLoc').value || "Unknown Location";
             
-            // Immediate Feedback
-            saveBtn.innerText = "SAVING...";
-            saveBtn.disabled = true;
-            document.getElementById('lastCheck').innerText = "Syncing Details...";
+            btn.innerText = "SAVING...";
+            btn.disabled = true;
+            document.getElementById('lastCheck').innerText = "Updating Cloud Registry...";
 
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
@@ -134,29 +156,29 @@
 
             document.getElementById('boxName').innerText = newName;
             document.getElementById('boxLoc').innerText = `📍 ${newLoc}`;
-            
-            saveBtn.innerText = originalText;
-            saveBtn.disabled = false;
+            btn.innerText = "Save Details";
+            btn.disabled = false;
             toggleEdit();
-            document.getElementById('lastCheck').innerText = "Details Saved ✓";
+            document.getElementById('lastCheck').innerText = "Changes Saved ✓";
+            document.getElementById('syncDot').classList.replace('bg-slate-300', 'bg-green-500');
         }
 
         async function triggerCheckin(category, btnId) {
             const btn = document.getElementById(btnId);
             const label = btn.querySelector('.label');
             const oldText = label.innerText;
-            label.innerText = "Syncing...";
+            label.innerText = "SYNCING...";
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
             });
-            label.innerText = "✓ Logged";
-            document.getElementById('lastCheck').innerText = "Cloud Synced ✓";
+            label.innerText = "✓ LOGGED";
+            document.getElementById('lastCheck').innerText = "Rotation Saved ✓";
             setTimeout(() => { label.innerText = oldText; }, 2000);
         }
 
         async function toggleGear(item, state) {
-            document.getElementById('lastCheck').innerText = `Syncing ${item}...`;
+            document.getElementById('lastCheck').innerText = `SAVING ${item.toUpperCase()}...`;
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'updateGear', boxId: boxId, item: item, state: state })
