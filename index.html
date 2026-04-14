@@ -21,7 +21,7 @@
                 </div>
                 <div id="headerContent" class="hidden text-center">
                     <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
-                    <p id="boxLoc" class="text-slate-400 font-bold text-xs uppercase">📍 Loading location...</p>
+                    <p id="boxLoc" class="text-slate-400 font-bold text-xs uppercase tracking-widest">📍 Loading...</p>
                 </div>
             </header>
         </div>
@@ -30,11 +30,11 @@
             <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Rotation Items</h2>
             <button id="btnWater" onclick="triggerCheckin('Water', 'btnWater')" class="w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
                 <span class="text-3xl">💧</span>
-                <span class="font-black text-lg label">Water is Fresh</span>
+                <span class="font-black text-lg label text-left">Water is Fresh</span>
             </button>
             <button id="btnFood" onclick="triggerCheckin('Food', 'btnFood')" class="w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
                 <span class="text-3xl">🥫</span>
-                <span class="font-black text-lg label">Food is In-Date</span>
+                <span class="font-black text-lg label text-left">Food is In-Date</span>
             </button>
         </section>
 
@@ -55,18 +55,26 @@
                 <div class="flex items-center gap-3"><span class="text-xl">🔦</span><span class="font-bold text-sm text-slate-700">Torch & Batteries</span></div>
                 <input type="checkbox" id="checkTorch" onchange="toggleGear('Torch', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
             </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3"><span class="text-xl">📻</span><span class="font-bold text-sm text-slate-700">Portable Radio</span></div>
+                <input type="checkbox" id="checkRadio" onchange="toggleGear('Radio', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+            </div>
         </section>
 
         <p id="lastCheck" class="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest italic">Syncing with cloud...</p>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCa1W_pzFtu2PC4_Im23F7K1otvdrhwugfTcaqZjs-n8vNtjZZv6Xcm4ulz6lhlJA/exec";
+        const SCRIPT_URL = "PASTE_YOUR_NEW_EXEC_URL_HERE"; // Update with your new deployment URL
         const urlParams = new URLSearchParams(window.location.search);
         const boxId = urlParams.get('id') || "UNSET";
 
         async function init() {
-            if (boxId === "UNSET") return;
+            if (boxId === "UNSET") {
+                document.getElementById('headerLoading').innerText = "⚠️ NO BOX ID";
+                return;
+            }
             try {
                 const res = await fetch(`${SCRIPT_URL}?id=${boxId}`);
                 const data = await res.json();
@@ -82,8 +90,9 @@
                     document.getElementById('checkFirstAid').checked = data.hasFirstAid;
                     document.getElementById('checkHygiene').checked = data.hasHygiene;
                     document.getElementById('checkTorch').checked = data.hasTorch;
+                    document.getElementById('checkRadio').checked = data.hasRadio;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Init failed:", e); }
         }
 
         async function triggerCheckin(category, btnId) {
