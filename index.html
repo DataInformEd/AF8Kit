@@ -154,31 +154,51 @@
             const healthText = document.getElementById('healthPercent');
             const statusLabel = document.getElementById('lastCheck');
 
-            // 1. Calculate Water Score (33.3%)
+            // 1. Calculate Water Score
             let waterScore = 0;
             const waterBtn = document.querySelector('#btnWater .label');
+            const waterSub = document.querySelector('#btnWater .sub');
 
             if (data.lastWater) {
                 const days = Math.floor((new Date() - new Date(data.lastWater)) / (1000*60*60*24));
-                waterScore = Math.max(0, 1 - (days / 180)) * 33.3;
-                waterBtn.innerText = days > 180 ? "Water Needs Checking" : "Water is Fresh";
-            } else {
-                waterBtn.innerText = "2 Weeks of Water?"; 
+                
+                // YOUR LOGIC: The Binary Switch (100% or 0%)
+               // waterScore = days <= 180 ? 33.3 : 0; 
+                
+                // MY PUSHBACK: The "Warning Zone" (Uncomment this to use it instead)
+                 waterScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
+
+                waterBtn.innerText = days > 180 ? "Replace Water" : "Water is Fresh";
+                waterSub.innerText = timeAgo(data.lastWater);
+                
+                document.getElementById('btnWater').className = days > 180 
+                    ? "w-full flex items-center gap-4 p-5 bg-red-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all animate-pulse"
+                    : "w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all";
             }
 
-            // 2. Calculate Food Score (33.3%)
+            // 2. Calculate Food Score
             let foodScore = 0;
             const foodBtn = document.querySelector('#btnFood .label');
+            const foodSub = document.querySelector('#btnFood .sub');
             
             if (data.lastFood) {
                 const days = Math.floor((new Date() - new Date(data.lastFood)) / (1000*60*60*24));
-                foodScore = Math.max(0, 1 - (days / 180)) * 33.3;
-                foodBtn.innerText = days > 180 ? "Food Expiring?" : "Food is In-Date";
-            } else {
-                foodBtn.innerText = "14 Days of Food?";
+                
+                // YOUR LOGIC: The Binary Switch
+                //foodScore = days <= 180 ? 33.3 : 0;
+
+                // MY PUSHBACK: The "Warning Zone"
+                foodScore = days <= 150 ? 33.3 : (days <= 180 ? 16.6 : 0);
+
+                foodBtn.innerText = days > 180 ? "Check Expiries" : "Food is In-Date";
+                foodSub.innerText = timeAgo(data.lastFood);
+                
+                document.getElementById('btnFood').className = days > 180 
+                    ? "w-full flex items-center gap-4 p-5 bg-red-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all animate-pulse"
+                    : "w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all";
             }
 
-            // FIX 2: Calculate Gear Score (3 items = divide by 3)
+            // 3. Calculate Gear Score (Still stays at 33.4% if all 3 are checked)
             const gearItems = [data.hasFirstAid, data.hasHygiene, data.hasTorch];
             const checkedCount = gearItems.filter(Boolean).length;
             let gearScore = (checkedCount / 3) * 33.4;
@@ -188,11 +208,17 @@
             healthBar.style.width = `${totalScore}%`;
             healthText.innerText = `${totalScore}%`;
 
-            if (totalScore > 80) healthBar.className = "h-full bg-green-500 transition-all duration-1000";
-            else if (totalScore > 40) healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
-            else healthBar.className = "h-full bg-red-600 transition-all duration-1000";
-
-            statusLabel.innerText = totalScore >= 99 ? "Kit Fully Ready ✓" : "Action Required Below";
+            // Adjust the overall color narrative based on the new math
+            if (totalScore >= 99) {
+                healthBar.className = "h-full bg-green-500 transition-all duration-1000";
+                statusLabel.innerText = "Kit Fully Ready ✓";
+            } else if (totalScore > 60) {
+                healthBar.className = "h-full bg-orange-500 transition-all duration-1000";
+                statusLabel.innerText = "Minor Updates Required";
+            } else {
+                healthBar.className = "h-full bg-red-600 transition-all duration-1000";
+                statusLabel.innerText = "Action Required Below";
+            }
         }
 
         function toggleEdit() {
