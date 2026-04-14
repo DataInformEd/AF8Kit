@@ -12,14 +12,14 @@
         
         <div class="flex flex-col items-center pt-6">
             <div class="bg-white p-2 rounded-full shadow-md overflow-hidden h-20 w-20 flex items-center justify-center border border-slate-200">
-                <img src="Logo.jpeg" alt="Logo" class="max-w-full h-auto">
+                <img src="Logo.png" alt="Logo" class="max-w-full h-auto">
             </div>
             <header id="statusCard" class="w-full mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative">
                 <button onclick="toggleEdit()" class="absolute top-4 right-4 text-slate-300 hover:text-blue-500 text-[10px] font-black uppercase tracking-widest transition-colors">Edit</button>
                 
-                <div id="headerLoading" class="animate-pulse space-y-2 py-4">
-                    <div class="h-6 w-1/2 bg-slate-100 mx-auto rounded"></div>
-                    <div class="h-4 w-1/3 bg-slate-50 mx-auto rounded"></div>
+                <div id="headerLoading" class="animate-pulse space-y-2 py-4 text-center">
+                    <div class="h-6 w-3/4 bg-slate-100 mx-auto rounded"></div>
+                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Loading Box Details...</p>
                 </div>
 
                 <div id="headerContent" class="hidden text-center space-y-1">
@@ -38,7 +38,7 @@
                             <option value="Arrowtown">Arrowtown</option>
                             <option value="Arthurs Point">Arthurs Point</option>
                         </select>
-                        <button onclick="saveChanges()" class="w-full p-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Save Changes</button>
+                        <button id="saveBtn" onclick="saveChanges()" class="w-full p-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Save Changes</button>
                     </div>
                 </div>
             </header>
@@ -56,6 +56,12 @@
             </button>
         </section>
 
+        <div class="py-2">
+            <p id="lastCheck" class="text-center text-[11px] font-black text-slate-600 uppercase tracking-widest italic bg-slate-100/50 py-2 rounded-xl">
+                Establishing Cloud Sync...
+            </p>
+        </div>
+
         <section class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-5">
             <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Essential Gear</h2>
             <div class="flex items-center justify-between">
@@ -72,7 +78,6 @@
             </div>
         </section>
 
-        <p id="lastCheck" class="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest italic">Syncing with cloud...</p>
     </div>
 
     <script>
@@ -112,17 +117,28 @@
         }
 
         async function saveChanges() {
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.innerText;
             const newName = document.getElementById('editName').value;
             const newLoc = document.getElementById('editLoc').value;
-            document.getElementById('lastCheck').innerText = "Updating...";
+            
+            // Immediate Feedback
+            saveBtn.innerText = "SAVING...";
+            saveBtn.disabled = true;
+            document.getElementById('lastCheck').innerText = "Syncing Details...";
+
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'update', boxId: boxId, name: newName, location: newLoc })
             });
+
             document.getElementById('boxName').innerText = newName;
             document.getElementById('boxLoc').innerText = `📍 ${newLoc}`;
+            
+            saveBtn.innerText = originalText;
+            saveBtn.disabled = false;
             toggleEdit();
-            document.getElementById('lastCheck').innerText = "Saved ✓";
+            document.getElementById('lastCheck').innerText = "Details Saved ✓";
         }
 
         async function triggerCheckin(category, btnId) {
@@ -135,16 +151,17 @@
                 body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
             });
             label.innerText = "✓ Logged";
+            document.getElementById('lastCheck').innerText = "Cloud Synced ✓";
             setTimeout(() => { label.innerText = oldText; }, 2000);
         }
 
         async function toggleGear(item, state) {
-            document.getElementById('lastCheck').innerText = "Syncing gear...";
+            document.getElementById('lastCheck').innerText = `Syncing ${item}...`;
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'updateGear', boxId: boxId, item: item, state: state })
             });
-            document.getElementById('lastCheck').innerText = "Gear Saved ✓";
+            document.getElementById('lastCheck').innerText = "Gear State Saved ✓";
         }
 
         window.onload = init;
