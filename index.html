@@ -6,66 +6,65 @@
     <title>AF8 Resilience Kit</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 font-sans text-slate-900">
+<body class="bg-slate-50 min-h-screen p-4 font-sans text-slate-900 pb-12">
 
-    <div id="app" class="max-w-md mx-auto space-y-6 pt-4">
+    <div id="app" class="max-w-md mx-auto space-y-6">
         
-        <header id="statusCard" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <div id="headerLoading" class="animate-pulse space-y-3">
-                <div class="h-8 w-3/4 bg-slate-200 rounded-lg"></div>
-                <div class="h-4 w-1/2 bg-slate-100 rounded-lg"></div>
-            </div>
-            
-            <div id="headerContent" class="hidden">
-                <h1 id="boxName" class="text-3xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
-                <p id="boxLoc" class="text-slate-500 font-bold flex items-center gap-1">📍 <span id="locText">...</span></p>
-                <div id="lastCheck" class="mt-4 inline-block px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-500 tracking-widest">
-                    Syncing...
+        <div class="flex flex-col items-center pt-6">
+            <img src="Logo.png" alt="AF8 Kit Logo" class="h-16 mb-4 drop-shadow-sm">
+            <header id="statusCard" class="w-full bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div id="headerContent" class="text-center">
+                    <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">Loading...</h1>
+                    <p id="boxLoc" class="text-slate-400 font-bold text-xs">PINPOINTING LOCATION...</p>
                 </div>
-            </div>
-        </header>
+            </header>
+        </div>
 
-        <main id="mainActions" class="space-y-4">
-            <button id="btnWater" onclick="triggerAction('Water', 'btnWater')" class="w-full flex items-center gap-4 p-6 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all disabled:opacity-50">
-                <span class="text-4xl icon">💧</span>
-                <div class="text-left">
-                    <p class="font-black text-xl leading-tight label">Water is Fresh</p>
-                    <p class="text-xs opacity-70 italic font-medium sub">Tap to verify</p>
-                </div>
+        <section class="space-y-3">
+            <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Rotation Items</h2>
+            <button id="btnWater" onclick="triggerCheckin('Water', 'btnWater')" class="w-full flex items-center gap-4 p-5 bg-blue-600 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
+                <span class="text-3xl">💧</span>
+                <div class="text-left"><p class="font-black text-lg leading-tight">Water is Fresh</p></div>
             </button>
-
-            <button id="btnFood" onclick="triggerAction('Food', 'btnFood')" class="w-full flex items-center gap-4 p-6 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all disabled:opacity-50">
-                <span class="text-4xl icon">🥫</span>
-                <div class="text-left">
-                    <p class="font-black text-xl leading-tight label">Food is In-Date</p>
-                    <p class="text-xs opacity-70 italic font-medium sub">Tap to verify</p>
-                </div>
+            <button id="btnFood" onclick="triggerCheckin('Food', 'btnFood')" class="w-full flex items-center gap-4 p-5 bg-orange-500 text-white rounded-3xl shadow-lg active:scale-95 transition-all">
+                <span class="text-3xl">🥫</span>
+                <div class="text-left"><p class="font-black text-lg leading-tight">Food is In-Date</p></div>
             </button>
-            <p id="feedbackMsg" class="text-center text-sm font-bold text-green-600 hidden">✓ Cloud Synced</p>
-        </main>
-
-        <section id="regForm" class="hidden bg-white p-6 rounded-3xl shadow-xl border-2 border-blue-500 space-y-4">
-            <h2 class="text-xl font-black italic uppercase">Register Kit</h2>
-            <input type="text" id="newName" placeholder="Kit Nickname" class="w-full p-4 bg-slate-100 rounded-xl font-bold outline-none">
-            <input type="text" id="newLoc" placeholder="Where is it stored?" class="w-full p-4 bg-slate-100 rounded-xl font-bold outline-none">
-            <button onclick="manageKit('register')" class="w-full p-4 bg-black text-white rounded-xl font-black uppercase tracking-widest">Activate Kit</button>
         </section>
 
-        <footer class="pt-8">
-            <details class="group bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <summary class="p-4 font-bold text-slate-400 text-sm cursor-pointer hover:bg-slate-50 flex justify-between items-center list-none">
-                    MANAGE KIT SETTINGS <span>▼</span>
-                </summary>
-                <div class="p-2 space-y-1 border-t border-slate-100 bg-slate-50">
-                    <button onclick="manageKit('update')" class="w-full text-left p-3 hover:bg-white rounded-lg font-bold text-slate-700">✏️ Change Name/Location</button>
-                    <button onclick="manageKit('delete')" class="w-full text-left p-3 hover:bg-red-50 rounded-lg font-bold text-red-600">🗑️ Delete Box Connection</button>
+        <section class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Essential Gear</h2>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🩹</span>
+                    <span class="font-bold text-sm">First Aid Kit</span>
                 </div>
-            </details>
-        </footer>
+                <input type="checkbox" id="checkFirstAid" onchange="toggleGear('FirstAid', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🧼</span>
+                    <span class="font-bold text-sm">Hygiene Items</span>
+                </div>
+                <input type="checkbox" id="checkHygiene" onchange="toggleGear('Hygiene', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🔦</span>
+                    <span class="font-bold text-sm">Torch & Batteries</span>
+                </div>
+                <input type="checkbox" id="checkTorch" onchange="toggleGear('Torch', this.checked)" class="w-6 h-6 rounded-full accent-green-600">
+            </div>
+        </section>
+
+        <p id="lastCheck" class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Syncing with cloud...</p>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCa1W_pzFtu2PC4_Im23F7K1otvdrhwugfTcaqZjs-n8vNtjZZv6Xcm4ulz6lhlJA/exec";
+        const SCRIPT_URL = "YOUR_WEB_APP_URL";
         const urlParams = new URLSearchParams(window.location.search);
         const boxId = urlParams.get('id') || "UNSET";
 
@@ -73,69 +72,35 @@
             if (boxId === "UNSET") return;
             const res = await fetch(`${SCRIPT_URL}?id=${boxId}`);
             const data = await res.json();
-            document.getElementById('headerLoading').classList.add('hidden');
-            if (!data.registered) {
-                document.getElementById('mainActions').classList.add('hidden');
-                document.getElementById('regForm').classList.remove('hidden');
-            } else {
-                document.getElementById('headerContent').classList.remove('hidden');
+            
+            if (data.registered) {
                 document.getElementById('boxName').innerText = data.name;
-                document.getElementById('locText').innerText = data.location;
-                document.getElementById('lastCheck').innerText = data.lastCheck ? `Last Check: ${new Date(data.lastCheck).toLocaleDateString()}` : "Never Checked";
-            }
-        }
-
-        async function triggerAction(category, btnId) {
-            const btn = document.getElementById(btnId);
-            const originalLabel = btn.querySelector('.label').innerText;
-            
-            // Immediate Feedback
-            btn.disabled = true;
-            btn.querySelector('.label').innerText = "Syncing...";
-            btn.querySelector('.sub').innerText = "Please wait...";
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
-                });
+                document.getElementById('boxLoc').innerText = `📍 ${data.location}`;
+                document.getElementById('lastCheck').innerText = data.lastCheck ? `Last rotation: ${new Date(data.lastCheck).toLocaleDateString()}` : "Never Rotated";
                 
-                document.getElementById('feedbackMsg').classList.remove('hidden');
-                document.getElementById('lastCheck').innerText = "Checked Just Now ✓";
-            } finally {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.querySelector('.label').innerText = originalLabel;
-                    btn.querySelector('.sub').innerText = "Tap to verify";
-                }, 2000);
+                // Set Checklist States
+                document.getElementById('checkFirstAid').checked = data.hasFirstAid;
+                document.getElementById('checkHygiene').checked = data.hasHygiene;
+                document.getElementById('checkTorch').checked = data.hasTorch;
             }
         }
 
-        async function manageKit(type) {
-            let body = { action: type, boxId: boxId };
-
-            if (type === 'delete' && !confirm("Permanently delete this box connection?")) return;
-            
-            if (type === 'update') {
-                body.name = prompt("New Name:", document.getElementById('boxName').innerText);
-                body.location = prompt("New Location:", document.getElementById('locText').innerText);
-                if (!body.name || !body.location) return;
-            }
-
-            if (type === 'register') {
-                body.name = document.getElementById('newName').value;
-                body.location = document.getElementById('newLoc').value;
-            }
-
+        async function triggerCheckin(category, btnId) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = true;
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(body)
+                body: JSON.stringify({ action: 'checkin', boxId: boxId, category: category })
             });
-            
-            alert("Updated! Refreshing...");
-            location.reload();
+            btn.disabled = false;
+            document.getElementById('lastCheck').innerText = "Rotation Logged! ✓";
+        }
+
+        async function toggleGear(item, state) {
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: 'updateGear', boxId: boxId, item: item, state: state })
+            });
         }
 
         window.onload = init;
