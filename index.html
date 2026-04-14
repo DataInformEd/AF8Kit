@@ -14,16 +14,32 @@
             <div class="bg-white p-2 rounded-full shadow-md overflow-hidden h-20 w-20 flex items-center justify-center border border-slate-200">
                 <img src="Logo.jpeg" alt="Logo" class="max-w-full h-auto">
             </div>
-            <header id="statusCard" class="w-full mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                <div id="headerLoading" class="animate-pulse space-y-2">
-                    <div class="h-6 w-1/2 bg-slate-100 mx-auto rounded"></div>
-                    <div class="h-4 w-1/3 bg-slate-50 mx-auto rounded"></div>
-                </div>
-                <div id="headerContent" class="hidden text-center">
-                    <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
-                    <p id="boxLoc" class="text-slate-400 font-bold text-xs uppercase tracking-widest">📍 Loading...</p>
-                </div>
-            </header>
+<header id="statusCard" class="w-full mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative">
+    <button onclick="toggleEdit()" class="absolute top-4 right-4 text-slate-300 hover:text-blue-500 transition-colors text-xs font-bold uppercase tracking-widest">
+        Edit
+    </button>
+
+    <div id="headerContent" class="text-center space-y-2">
+        <div id="viewMode">
+            <h1 id="boxName" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">My Box</h1>
+            <p id="boxLoc" class="text-slate-400 font-bold text-xs uppercase tracking-widest">📍 Location</p>
+        </div>
+
+        <div id="editMode" class="hidden space-y-3">
+            <input type="text" id="editName" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="editLoc" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center outline-none">
+                <option value="Queenstown Central">Queenstown Central</option>
+                <option value="Fernhill / Sunshine Bay">Fernhill / Sunshine Bay</option>
+                <option value="Frankton">Frankton</option>
+                <option value="Hanley's Farm / Jack's Point">Hanley's Farm / Jack's Point</option>
+                <option value="Shotover Country / Lake Hayes Estate">Shotover Country / Lake Hayes Estate</option>
+                <option value="Arrowtown">Arrowtown</option>
+                <option value="Arthurs Point">Arthurs Point</option>
+            </select>
+            <button onclick="saveChanges()" class="w-full p-2 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg">Save Changes</button>
+        </div>
+    </div>
+</header>
         </div>
 
         <section class="space-y-3">
@@ -69,7 +85,7 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCa1W_pzFtu2PC4_Im23F7K1otvdrhwugfTcaqZjs-n8vNtjZZv6Xcm4ulz6lhlJA/exec"; // Update with your new deployment URL
         const urlParams = new URLSearchParams(window.location.search);
         const boxId = urlParams.get('id') || "UNSET";
-
+        
         async function init() {
             if (boxId === "UNSET") {
                 document.getElementById('headerLoading').innerText = "⚠️ NO BOX ID";
@@ -120,6 +136,52 @@
             document.getElementById('lastCheck').innerText = "Gear Saved ✓";
         }
 
+        function toggleEdit() {
+    const isEditing = !document.getElementById('viewMode').classList.contains('hidden');
+    
+    if (isEditing) {
+        // Pre-fill fields with current values
+        document.getElementById('editName').value = document.getElementById('boxName').innerText;
+        document.getElementById('editLoc').value = document.getElementById('boxLoc').innerText.replace('📍 ', '');
+        
+        document.getElementById('viewMode').classList.add('hidden');
+        document.getElementById('editMode').classList.remove('hidden');
+    } else {
+        document.getElementById('viewMode').classList.remove('hidden');
+        document.getElementById('editMode').classList.add('hidden');
+    }
+}
+
+async function saveChanges() {
+    const newName = document.getElementById('editName').value;
+    const newLoc = document.getElementById('editLoc').value;
+    
+    document.getElementById('lastCheck').innerText = "Updating Cloud...";
+
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            body: JSON.stringify({ 
+                action: 'update', 
+                boxId: boxId, 
+                name: newName, 
+                location: newLoc 
+            })
+        });
+
+        // Update UI locally immediately
+        document.getElementById('boxName').innerText = newName;
+        document.getElementById('boxLoc').innerText = `📍 ${newLoc}`;
+        toggleEdit(); // Switch back to view mode
+        document.getElementById('lastCheck').innerText = "Changes Saved ✓";
+    } catch (e) {
+        alert("Sync failed. Try again.");
+    }
+}
+
+
+
+        
         window.onload = init;
     </script>
 </body>
